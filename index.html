@@ -245,6 +245,15 @@
     <!-- 14 SQUARE WORKSPACE BUTTONS -->
     <div class="floating-workspace" id="floatingWorkspace"></div>
 
+    <!-- COMING SOON POPUP MODAL -->
+    <div id="coming-soon-modal" class="modal-overlay">
+        <div class="modal-box" style="text-align: center; border: 2px solid var(--gold); max-width: 360px;">
+            <h3 style="color: var(--gold); margin-top: 0; font-size: 20px;">⏳ COMING SOON</h3>
+            <p id="coming-soon-text" style="font-size: 13px; color: #94a3b8; margin: 15px 0;">Please wait, coming soon!</p>
+            <button class="action-btn signup-theme" style="width: 100%; padding: 10px;" onclick="closeModal('coming-soon-modal')">OK</button>
+        </div>
+    </div>
+
     <!-- SIGN-UP MODAL -->
     <div id="signup-modal" class="modal-overlay">
         <div class="modal-box">
@@ -438,7 +447,7 @@
         let failedAttempts = 0;
         let isLockedOut = false;
 
-        // Render Buttons & Automatically Pass Active User ID to Sub-pages
+        // Render Buttons with Coming Soon / Direct Link Logic
         function renderFloatingButtons() {
             const workspace = document.getElementById('floatingWorkspace');
             workspace.innerHTML = '';
@@ -459,7 +468,10 @@
                         openProfileDetailsModal();
                         return;
                     }
-                    let targetUrl = (adminData.links && adminData.links[btn.name]) ? adminData.links[btn.name] : '';
+
+                    let targetUrl = (adminData.links && adminData.links[btn.name]) ? adminData.links[btn.name].trim() : '';
+                    
+                    // If GitHub link is configured and valid, open it directly smoothly
                     if (targetUrl && targetUrl.startsWith('http')) {
                         const activeUserId = localStorage.getItem('mgsml_active_user');
                         if (activeUserId) {
@@ -468,7 +480,9 @@
                         }
                         window.open(targetUrl, '_blank');
                     } else {
-                        alert(`Redirecting to ${btn.name} Sub-Page (No GitHub link configured yet by Admin).`);
+                        // Otherwise show Coming Soon Modal Popup
+                        document.getElementById('coming-soon-text').innerText = `"${btn.name}" is coming soon, please wait!`;
+                        openModal('coming-soon-modal');
                     }
                 };
                 workspace.appendChild(pill);
@@ -693,13 +707,11 @@
             checkActiveSession();
         }
 
-        // Robust flexible balance extractor for all 20 tokens & SKY/STAR mining fields
         function getTokenBalance(data, tokenName) {
             if (data.wallets && typeof data.wallets === 'object') {
                 if (data.wallets[tokenName] !== undefined && data.wallets[tokenName] !== null) {
                     return Number(data.wallets[tokenName]);
                 }
-                // Case-insensitive check
                 const foundKey = Object.keys(data.wallets).find(k => k.toUpperCase() === tokenName.toUpperCase());
                 if (foundKey && data.wallets[foundKey] !== undefined) {
                     return Number(data.wallets[foundKey]);
