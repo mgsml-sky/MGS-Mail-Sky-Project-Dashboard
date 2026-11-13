@@ -249,7 +249,7 @@
     <div id="coming-soon-modal" class="modal-overlay">
         <div class="modal-box" style="text-align: center; border: 2px solid var(--gold); max-width: 360px;">
             <h3 style="color: var(--gold); margin-top: 0; font-size: 20px;">⏳ COMING SOON</h3>
-            <p id="coming-soon-text" style="font-size: 13px; color: #94a3b8; margin: 15px 0;">Please wait, coming soon!</p>
+            <p style="font-size: 14px; color: #e2e8f0; margin: 15px 0;">Please wait, coming soon!</p>
             <button class="action-btn signup-theme" style="width: 100%; padding: 10px;" onclick="closeModal('coming-soon-modal')">OK</button>
         </div>
     </div>
@@ -377,7 +377,7 @@
     </div>
 
     <script>
-        // Splash Animation
+        // Splash Animation & Audio Auto Stop after 7 Seconds (Short & Crisp)
         window.addEventListener('DOMContentLoaded', () => {
             const line1Chars = ['M', 'G', 'S', 'M', 'L'];
             const line2Chars = ['S', 'K', 'Y'];
@@ -406,6 +406,15 @@
                 box.style.animationDelay = `${globalIndex * 0.12}s`;
                 c3.appendChild(box); globalIndex++;
             });
+
+            // Stop audio after exactly 7 seconds
+            setTimeout(() => {
+                const audio = document.getElementById('splashAudio');
+                if (audio) {
+                    audio.pause();
+                    audio.currentTime = 0;
+                }
+            }, 7000);
 
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
@@ -480,8 +489,7 @@
                         }
                         window.open(targetUrl, '_blank');
                     } else {
-                        // Otherwise show Coming Soon Modal Popup
-                        document.getElementById('coming-soon-text').innerText = `"${btn.name}" is coming soon, please wait!`;
+                        // Otherwise show Coming Soon Modal Popup for all 14 buttons uniformly
                         openModal('coming-soon-modal');
                     }
                 };
