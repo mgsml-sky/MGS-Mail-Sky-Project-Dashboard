@@ -198,6 +198,14 @@
             z-index: 20000; padding: 0; box-sizing: border-box;
             align-items: center; justify-content: center;
         }
+
+        /* TOGGLE SWITCH STYLE FOR ADMIN CMS */
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #374151; transition: .3s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: #10b981; }
+        input:checked + .slider:before { transform: translateX(20px); }
     </style>
 </head>
 <body>
@@ -242,7 +250,7 @@
         <input type="password" id="admin-sec-pass" class="custom-input" placeholder="" style="margin:0; height:100%; text-align:center; font-size:14px; background:#000000; border:none; outline:none; color:#ffffff;" maxlength="12" oninput="verifyAdminPassword(this)">
     </div>
 
-    <!-- 14 SQUARE WORKSPACE BUTTONS -->
+    <!-- WORKSPACE BUTTONS (DYNAMIC VISIBILITY) -->
     <div class="floating-workspace" id="floatingWorkspace"></div>
 
     <!-- COMING SOON POPUP MODAL -->
@@ -356,11 +364,11 @@
         </div>
     </div>
 
-    <!-- MASTER ADMIN CMS MODAL -->
+    <!-- MASTER ADMIN CMS MODAL WITH BUTTON ON/OFF SWITCHES -->
     <div id="admin-panel-modal" class="modal-overlay">
         <div class="modal-box" style="max-width:620px;">
             <button class="modal-close" onclick="closeModal('admin-panel-modal')">✕</button>
-            <h3 style="color: var(--danger); margin-top:0;">🔐 Master Admin CMS - GitHub Links & Tokens</h3>
+            <h3 style="color: var(--danger); margin-top:0;">🔐 Master Admin CMS - Button Controls & Links</h3>
             
             <div style="background:#030712; padding:10px; border-radius:8px; border:1px solid #1f2937; margin-bottom:10px;">
                 <span style="font-size:11px; font-weight:bold; color:var(--gold);">Change Admin PIN:</span>
@@ -369,15 +377,15 @@
             </div>
 
             <p style="font-size:11px; font-weight:bold; color:var(--accent-green);">Select Active Sign-Up Bonus Token & Set Amount:</p>
-            <div id="admin-tokens-container" style="max-height:150px; overflow-y:auto; display:flex; flex-direction:column; gap:5px; margin-bottom:12px; background:#030712; padding:8px; border-radius:6px; border:1px solid #1f2937;"></div>
+            <div id="admin-tokens-container" style="max-height:140px; overflow-y:auto; display:flex; flex-direction:column; gap:5px; margin-bottom:12px; background:#030712; padding:8px; border-radius:6px; border:1px solid #1f2937;"></div>
 
-            <p style="font-size:11px; font-weight:bold; color:var(--primary-sky);">GitHub Links for Buttons (Paste link and click Save):</p>
-            <div id="admin-links-container" style="max-height:240px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;"></div>
+            <p style="font-size:11px; font-weight:bold; color:var(--primary-sky);">Button Visibility (ON/OFF Switches) & GitHub Links:</p>
+            <div id="admin-links-container" style="max-height:260px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;"></div>
         </div>
     </div>
 
     <script>
-        // Splash Animation & Audio Auto Stop after 7 Seconds (Short & Crisp)
+        // Splash Animation & Audio Auto Stop after 7 Seconds
         window.addEventListener('DOMContentLoaded', () => {
             const line1Chars = ['M', 'G', 'S', 'M', 'L'];
             const line2Chars = ['S', 'K', 'Y'];
@@ -407,13 +415,9 @@
                 c3.appendChild(box); globalIndex++;
             });
 
-            // Stop audio after exactly 7 seconds
             setTimeout(() => {
                 const audio = document.getElementById('splashAudio');
-                if (audio) {
-                    audio.pause();
-                    audio.currentTime = 0;
-                }
+                if (audio) { audio.pause(); audio.currentTime = 0; }
             }, 7000);
 
             setTimeout(() => {
@@ -452,15 +456,19 @@
             { name: "User Profile", symbol: "👤" }
         ];
 
-        let adminData = { links: {}, tokensConfig: { selectedToken: "SKY", tokenAmount: 100 } };
+        let adminData = { links: {}, visibility: {}, tokensConfig: { selectedToken: "SKY", tokenAmount: 100 } };
         let failedAttempts = 0;
         let isLockedOut = false;
 
-        // Render Buttons with Coming Soon / Direct Link Logic
+        // Render Buttons with ON/OFF Toggle and Direct Link / Coming Soon Logic
         function renderFloatingButtons() {
             const workspace = document.getElementById('floatingWorkspace');
             workspace.innerHTML = '';
             masterButtons.forEach((btn) => {
+                // Default visibility is true (shown) unless explicitly turned off by admin
+                const isVisible = (adminData.visibility && adminData.visibility[btn.name] !== undefined) ? adminData.visibility[btn.name] : true;
+                if (!isVisible) return; // Hide button if toggled OFF
+
                 const pill = document.createElement('div');
                 pill.className = 'floating-pill';
                 pill.innerHTML = `
@@ -480,7 +488,6 @@
 
                     let targetUrl = (adminData.links && adminData.links[btn.name]) ? adminData.links[btn.name].trim() : '';
                     
-                    // If GitHub link is configured and valid, open it directly smoothly
                     if (targetUrl && targetUrl.startsWith('http')) {
                         const activeUserId = localStorage.getItem('mgsml_active_user');
                         if (activeUserId) {
@@ -489,7 +496,6 @@
                         }
                         window.open(targetUrl, '_blank');
                     } else {
-                        // Otherwise show Coming Soon Modal Popup for all 14 buttons uniformly
                         openModal('coming-soon-modal');
                     }
                 };
@@ -552,6 +558,7 @@
         async function loadAdminData() {
             db.collection("settings").doc("admin_cms").onSnapshot((doc) => {
                 if (doc.exists) { adminData = doc.data(); }
+                if (!adminData.visibility) adminData.visibility = {};
                 renderAdminInputs();
                 renderFloatingButtons();
             });
@@ -583,13 +590,24 @@
                 linkContainer.innerHTML = '';
                 masterButtons.forEach(btn => {
                     const currentUrl = (adminData.links && adminData.links[btn.name]) ? adminData.links[btn.name] : '';
+                    const isVisible = (adminData.visibility && adminData.visibility[btn.name] !== undefined) ? adminData.visibility[btn.name] : true;
+                    
                     const div = document.createElement('div');
-                    div.style.cssText = "display:flex; flex-direction:column; gap:3px; background:#030712; padding:8px; border-radius:6px; border:1px solid #1f2937;";
+                    div.style.cssText = "display:flex; flex-direction:column; gap:4px; background:#030712; padding:8px; border-radius:6px; border:1px solid #1f2937;";
                     div.innerHTML = `
-                        <span style="font-weight:bold; color:var(--primary-sky); font-size:10px;">${btn.symbol} ${btn.name}</span>
-                        <div style="display:flex; gap:6px; align-items:center;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:bold; color:var(--primary-sky); font-size:10px;">${btn.symbol} ${btn.name}</span>
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <span style="font-size:9px; color:${isVisible ? 'var(--accent-green)' : 'var(--danger)'}; font-weight:bold;" id="lbl-status-${safeId(btn.name)}">${isVisible ? 'ON (Shown)' : 'OFF (Hidden)'}</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="toggle-${safeId(btn.name)}" ${isVisible ? 'checked' : ''} onchange="onAdminToggleChange('${btn.name}')">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:6px; align-items:center; margin-top:2px;">
                             <input type="text" id="admin-link-${safeId(btn.name)}" class="custom-input" style="margin:0; flex:1;" value="${currentUrl}" placeholder="Paste GitHub URL here">
-                            <button class="action-btn signup-theme" style="padding: 6px 10px; font-size: 9px;" onclick="saveSingleLink('${btn.name}')">Save</button>
+                            <button class="action-btn signup-theme" style="padding: 6px 10px; font-size: 9px;" onclick="saveSingleButtonData('${btn.name}')">Save</button>
                         </div>
                     `;
                     linkContainer.appendChild(div);
@@ -599,12 +617,28 @@
 
         function safeId(name) { return name.replace(/[^a-zA-Z0-9]/g, '_'); }
 
-        async function saveSingleLink(btnName) {
-            const val = document.getElementById('admin-link-' + safeId(btnName)).value.trim();
+        function onAdminToggleChange(btnName) {
+            const isChecked = document.getElementById('toggle-' + safeId(btnName)).checked;
+            const lbl = document.getElementById('lbl-status-' + safeId(btnName));
+            lbl.innerText = isChecked ? 'ON (Shown)' : 'OFF (Hidden)';
+            lbl.style.color = isChecked ? 'var(--accent-green)' : 'var(--danger)';
+
+            if (!adminData.visibility) adminData.visibility = {};
+            adminData.visibility[btnName] = isChecked;
+        }
+
+        async function saveSingleButtonData(btnName) {
+            const urlVal = document.getElementById('admin-link-' + safeId(btnName)).value.trim();
+            const isChecked = document.getElementById('toggle-' + safeId(btnName)).checked;
+
             if(!adminData.links) adminData.links = {};
-            adminData.links[btnName] = val;
+            if(!adminData.visibility) adminData.visibility = {};
+
+            adminData.links[btnName] = urlVal;
+            adminData.visibility[btnName] = isChecked;
+
             await db.collection("settings").doc("admin_cms").set(adminData, { merge: true });
-            alert(`✔ GitHub link for "${btnName}" saved successfully!`);
+            alert(`✔ Settings for "${btnName}" saved successfully!`);
             renderFloatingButtons();
         }
 
