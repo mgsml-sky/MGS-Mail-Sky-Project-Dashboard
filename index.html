@@ -250,7 +250,7 @@
         <input type="password" id="admin-sec-pass" class="custom-input" placeholder="" style="margin:0; height:100%; text-align:center; font-size:14px; background:#000000; border:none; outline:none; color:#ffffff;" maxlength="12" oninput="verifyAdminPassword(this)">
     </div>
 
-    <!-- WORKSPACE BUTTONS (DYNAMIC VISIBILITY) -->
+    <!-- 14 WORKSPACE BUTTONS (DYNAMIC ADMIN TOGGLE VISIBILITY) -->
     <div class="floating-workspace" id="floatingWorkspace"></div>
 
     <!-- COMING SOON POPUP MODAL -->
@@ -364,7 +364,7 @@
         </div>
     </div>
 
-    <!-- MASTER ADMIN CMS MODAL WITH BUTTON ON/OFF SWITCHES -->
+    <!-- MASTER ADMIN CMS MODAL WITH 14 BUTTON ON/OFF SWITCHES -->
     <div id="admin-panel-modal" class="modal-overlay">
         <div class="modal-box" style="max-width:620px;">
             <button class="modal-close" onclick="closeModal('admin-panel-modal')">✕</button>
@@ -379,7 +379,7 @@
             <p style="font-size:11px; font-weight:bold; color:var(--accent-green);">Select Active Sign-Up Bonus Token & Set Amount:</p>
             <div id="admin-tokens-container" style="max-height:140px; overflow-y:auto; display:flex; flex-direction:column; gap:5px; margin-bottom:12px; background:#030712; padding:8px; border-radius:6px; border:1px solid #1f2937;"></div>
 
-            <p style="font-size:11px; font-weight:bold; color:var(--primary-sky);">Button Visibility (ON/OFF Switches) & GitHub Links:</p>
+            <p style="font-size:11px; font-weight:bold; color:var(--primary-sky);">14 Workspace Buttons (ON/OFF Visibility & GitHub Links):</p>
             <div id="admin-links-container" style="max-height:260px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;"></div>
         </div>
     </div>
@@ -439,6 +439,7 @@
         // All 20 Admin Tokens
         const globalTokens = ["STAR", "MG", "SCS", "MLF", "MTR", "BULT", "JKR", "MGSML", "BLH", "BRH", "HRM", "DOJI", "SGP", "ULG", "BWD", "SKY", "RKT", "GME", "SSR", "TPY"];
         
+        // Exactly 14 Master Workspace Buttons
         const masterButtons = [
             { name: "MGSML Games Hub", symbol: "🎮" },
             { name: "Settings", symbol: "⚙️" },
@@ -460,14 +461,14 @@
         let failedAttempts = 0;
         let isLockedOut = false;
 
-        // Render Buttons with ON/OFF Toggle and Direct Link / Coming Soon Logic
+        // Render Buttons with ON/OFF Toggle Visibility Logic
         function renderFloatingButtons() {
             const workspace = document.getElementById('floatingWorkspace');
             workspace.innerHTML = '';
             masterButtons.forEach((btn) => {
                 // Default visibility is true (shown) unless explicitly turned off by admin
                 const isVisible = (adminData.visibility && adminData.visibility[btn.name] !== undefined) ? adminData.visibility[btn.name] : true;
-                if (!isVisible) return; // Hide button if toggled OFF
+                if (!isVisible) return; // Hide button if toggled OFF in Admin CMS
 
                 const pill = document.createElement('div');
                 pill.className = 'floating-pill';
